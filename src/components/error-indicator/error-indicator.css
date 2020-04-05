@@ -1,7 +1,8 @@
 .error-indicator {
-    width: 100%;
+    color: rgb(169, 111, 23);
+    font-size: 12px;
+    margin: 0 auto;
     text-align: center;
-    color: rgb(197, 62, 13);
 }
 
 .error-indicator span {
@@ -9,6 +10,6 @@
 }
 
 .boom {
-    font-size: 2rem;
     text-transform: uppercase;
+    font-size: 24px;
 }

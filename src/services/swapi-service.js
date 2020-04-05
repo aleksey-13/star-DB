@@ -1,94 +1,81 @@
 export default class SwapiService {
+  _apiBase = "https://swapi.co/api";
+  _imageBase = "https://starwars-visualguide.com/assets/img";
 
-  _apiBase = 'https://swapi.co/api';
+  getResource = async url => {
+    const responce = await fetch(`${this._apiBase}${url}`);
 
-  _imageBase = 'https://starwars-visualguide.com/assets/img';
-
-  getResource = async (url) => {
-    const res = await fetch(`${this._apiBase}${url}`);
-
-    if (!res.ok) {
-      throw new Error(`Could not fetch ${url}` +
-        `, received ${res.status}`)
+    if (!responce.ok) {
+      throw new Error(
+        `Could not fetch ${this._apiBase}${url}, received ${responce.status}`
+      );
     }
-    return await res.json();
+    const data = await responce.json();
+
+    return data;
   };
 
   getAllPeople = async () => {
-    const res = await this.getResource(`/people/`);
-    return res.results.map(this._transformPerson);
+    const result = await this.getResource("/people/");
+
+    return result.results.map(this._transfortPerson);
   };
 
-  getPerson = async (id) => {
-    const person = await this.getResource(`/people/${id}/`);
-    return this._transformPerson(person);
+  getPerson = async id => {
+    const person = await this.getResource(`/people/${id}`);
+
+    return this._transfortPerson(person);
   };
 
   getAllPlanets = async () => {
-    const res = await this.getResource(`/planets/`);
-    return res.results.map(this._transformPlanet);
+    const result = await this.getResource("/planets/");
+
+    return result.results.map(this._transfortPlanet);
   };
 
-  getPlanet = async (id) => {
-    const planet = await this.getResource(`/planets/${id}/`);
-    return this._transformPlanet(planet);
+  getPlanet = async id => {
+    const planet = await this.getResource(`/planets/${id}`);
+
+    return this._transfortPlanet(planet);
   };
 
   getAllStarships = async () => {
-    const res = await this.getResource(`/starships/`);
-    return res.results.map(this._transformStarship);
+    const result = await this.getResource("/starships/");
+
+    return result.results.map(this._transfortStarship);
   };
 
-  getStarship = async (id) => {
-    const starship = await this.getResource(`/starships/${id}/`);
-    return this._transformStarship(starship);
+  getStarship = async id => {
+    const starship = await this.getResource(`/starships/${id}`);
+
+    return this._transfortStarship(starship);
   };
 
-  getPersonImage = ({id}) => {
-    return `${this._imageBase}/characters/${id}.jpg`;
-  };
+  getPersonImage = ({ id }) => `${this._imageBase}/characters/${id}.jpg`;
 
-  getStarshipImage = ({id}) => {
-    return `${this._imageBase}/starships/${id}.jpg`;
-  };
+  getPlanetImage = ({ id }) => `${this._imageBase}/planets/${id}.jpg`;
 
-  getPlanetImage = ({id}) => {
-    console.log('id')
-    return `${this._imageBase}/planets/${id}.jpg`;
-  };
+  getStarshipImage = ({ id }) => `${this._imageBase}/starships/${id}.jpg`;
 
-  _extractId(item) {
+  _extractId = item => {
     const idRegExp = /\/([0-9]*)\/$/;
-    return item.url.match(idRegExp)[1];
+
+    return item.match(idRegExp)[1];
   };
 
-  _transformPlanet = (planet) => {
+  _transfortPlanet = planet => {
     return {
-      id: this._extractId(planet),
-      population: planet.population,
+      id: this._extractId(planet.url),
+      name: planet.name,
       rotationPeriod: planet.rotation_period,
       diameter: planet.diameter,
-      name: planet.name
+      population: planet.population
     };
   };
 
-  _transformStarship = (starship) => {
+  _transfortPerson = person => {
     return {
-      id: this._extractId(starship),
-      name: starship.name,
-      model: starship.model,
-      manufacturer: starship.manufacturer,
-      constInCredits: starship.cost_in_credits,
-      length: starship.length,
-      crew: starship.crew,
-      pressengers: starship.pressengers,
-      cargoCapacity: starship.cargo_capacity
-    }
-  };
-
-  _transformPerson = (person) => {
-    return {
-      id: this._extractId(person),
+      id: this._extractId(person.url),
       name: person.name,
       gender: person.gender,
       birthYear: person.birth_year,
@@ -96,4 +83,13 @@ export default class SwapiService {
     };
   };
 
+  _transfortStarship = starship => {
+    return {
+      id: this._extractId(starship.url),
+      name: starship.name,
+      model: starship.model,
+      manufacturer: starship.manufacturer,
+      costInCredits: starship.costInCredits
+    };
+  };
 }

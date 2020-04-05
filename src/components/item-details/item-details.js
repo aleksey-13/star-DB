@@ -1,28 +1,24 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from "react";
 
-import ErrorButton from '../error-button/error-button';
+import Spinner from "../spinner";
+import ErrorButton from "../error-button";
 
-import './item-details.css';
+import "./item-details.css";
 
-const Record = ({ item, field, label }) => {
+export const Record = ({ field, label, item }) => {
   return (
     <li className="list-group-item">
       <span className="term">{label}</span>
-      <span>{ item[field] }</span>
+      <span>{item[field]}</span>
     </li>
   );
 };
 
-export {
-  Record
-};
-
-
 export default class ItemDetails extends Component {
-
   state = {
     item: null,
-    image: null
+    image: null,
+    loading: true
   };
 
   componentDidMount() {
@@ -30,53 +26,68 @@ export default class ItemDetails extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.itemId !== prevProps.itemId) {
+    if (
+      prevProps.itemId !== this.props.itemId ||
+      prevProps.getData !== this.props.getData ||
+      prevProps.getImgUrl !== this.props.getImgUrl
+    ) {
       this.updateItem();
+
+      this.setState({ loading: true });
     }
   }
 
-  updateItem() {
-    const { itemId, getData, getImageUrl } = this.props;
-    if (!itemId) {
-      return;
-    }
+  updateItem = () => {
+    const { getData, itemId, getImgUrl } = this.props;
 
-    getData(itemId)
-      .then((item) => {
-        this.setState({
-          item,
-          image: getImageUrl(item)
-        });
-      });
-  }
+    if (!itemId) return;
+
+    getData(itemId).then(item =>
+      this.setState({ item, loading: false, image: getImgUrl(item) })
+    );
+  };
 
   render() {
+    const { item, loading, image } = this.state;
+    const { itemId } = this.props;
+    const children = React.Children.map(this.props.children, child =>
+      React.cloneElement(child, { item })
+    );
 
-    const { item, image } = this.state;
-    if (!item) {
-      return <span>Select a item from a list</span>;
+    if (!itemId) {
+      return (
+        <span style={{ textAlign: "center", display: "block", padding: 15 }}>
+          Select a person from a list
+        </span>
+      );
     }
 
-    const { name } = item;
+    const spinner = loading ? <Spinner /> : null;
+    const content = !loading ? (
+      <ItemView item={item} image={image} children={children} />
+    ) : null;
 
     return (
-      <div className="item-details card">
-        <img className="item-image"
-          src={image}
-          alt="item"/>
-
-        <div className="card-body">
-          <h4>{name}</h4>
-          <ul className="list-group list-group-flush">
-            {
-              React.Children.map(this.props.children, (child) => {
-                return React.cloneElement(child, { item });
-              })
-            }
-          </ul>
-          <ErrorButton />
-        </div>
+      <div className="item-details card flex-row align-items-center justify-content-around">
+        {spinner}
+        {content}
       </div>
     );
   }
 }
+
+const ItemView = ({ item, image, children }) => {
+  const { name } = item;
+
+  return (
+    <Fragment>
+      <img className="item-image" alt="item" src={image} />
+
+      <div className="card-body">
+        <h4>{name}</h4>
+        <ul className="list-group list-group-flush">{children}</ul>
+        <ErrorButton />
+      </div>
+    </Fragment>
+  );
+};
